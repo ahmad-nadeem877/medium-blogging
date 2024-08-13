@@ -30,18 +30,25 @@ userRouter.post("/signup", async (c) => {
     });
   }
 
-  const user = await prisma.user.create({
-    data: {
-      email: body.email,
-      password: body.password,
-    },
-  });
+  try {
+    const user = await prisma.user.create({
+      data: {
+        email: body.email,
+        password: body.password,
+        name: body.name,
+      },
+    });
+    const payload = {
+      userId: user.id,
+    };
+    const jwtToken = await sign(payload, c.env.JWT_SECRET);
+    return c.json({ token: jwtToken });
+  } catch (e) {
+    console.log("err", e);
+    c.status(422);
+    return c.json({ message: "Error creating user" });
+  }
 
-  const payload = {
-    userId: user.id,
-  };
-  const jwtToken = await sign(payload, c.env.JWT_SECRET);
-  return c.json({ token: jwtToken });
   // return c.text("signup route!");
 });
 
